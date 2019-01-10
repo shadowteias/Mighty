@@ -27,16 +27,19 @@ def printA():
 	print('print A, to test')
 
 def ruleSetting(playerNum = 5, ruleName = 'defalt'):
-	"""
-	플레이어 수와 룰을 묻는다.
-	AI끼리 대전하는 룰인지, 사람이 같이 하는 룰인지 확인.
-	"""
-	playerNumber = playerNum
-	if ruleName == 'defalt':
-		sets = [playerNumber, ruleName]
-		return sets
-	else:
-		print(str(ruleName) + ', this rule is not ready')
+    """
+    플레이어 수와 룰을 묻는다.
+    AI끼리 대전하는 룰인지, 사람이 같이 하는 룰인지 확인.
+    """
+    playerNumber = playerNum
+    if ruleName == 'defalt':
+        sets = [playerNumber, ruleName]
+        return sets
+    elif ruleName == "AIs":
+        sets = [playerNumber, ruleName]
+        return sets
+    else:
+        print(str(ruleName) + ', this rule is not ready')
 
 def deckGenerator(ruleName = 'defalt'):
 	if ruleName == 'defalt':
@@ -121,7 +124,7 @@ def dealCount(playersHand):
 #     print(count)
     return count
 
-def roundTrun(turn, startPosition):
+def roundTrun(turn, startPosition): #이 함수는 아래 함수로 대체될것 같다... 
     a = list(range(len(turn)))
     for i in range(len(turn)):
         a[i] = turn[startPosition]
@@ -130,6 +133,12 @@ def roundTrun(turn, startPosition):
             startPosition = 0
     return a
 
+def turnSetting(position, turnStart): #턴스타트는 int, turn은 list
+    roundTurn = position.copy()
+    while turnStart != roundTurn[0]:
+        roundTurn.append(roundTurn[0])
+        roundTurn.pop(0)
+    return roundTurn
 
 def card2bits(cardList):
     bits = ['0'] *53
@@ -156,5 +165,56 @@ def card2bits(cardList):
     return bits
 
 
-def roundWin():
-    pass
+def roundWin(roundCards, mighty, giruda, jokerCall, validJoker): # validJoker: 첫턴0, 중간턴1, 끝턴0
+    calculateScore = 0
+    for i in range(len(roundCards)):
+        if roundCards[i][1] >= 10:
+            calculateScore += 1 #해당라운드의 점수지롱.
+    if mighty in roundCards:
+        return roundCards.index(mighty), calculateScore
+    elif (joker in roundCards) and (roundCards[0] != jokerCall) and (validJoker == 1) :
+        return roundCards.index(joker), calculateScore
+    elif giruda != 'noGiru' : 
+        #이제부턴 마이티도 조커도 없으니 기루다 싸움이다. 근데 기루다가 있는지 먼저 물어보는게 예의지.
+        if shapeCounter(roundCards, giruda) > 0: # 기루다가 라운드 카드중에 나왔을 때
+            giruSet = shapeCollector(roundCards, giruda)
+            maxCount = 0
+            winCard = []
+            for i in giruSet:
+                if i[1] > maxCount:
+                    maxCount = i[1]
+                    winCard = i
+            return roundCards.index(winCard), calculateScore
+        else: #기루다 없어
+            sunSet = shapeCollector(roundCards, roundCards[0][0]) #선 카드 모음
+            maxCount = 0
+            winCard = []
+            for i in sunSet:
+                if i[1] > maxCount:
+                    maxCount = i[1]
+                    winCard = i
+            return roundCards.index(winCard), calculateScore
+    else: # 노기루여?
+        sunSet = shapeCollector(roundCards, roundCards[0][0]) #선 카드 모음
+        maxCount = 0
+        winCard = []
+        for i in sunSet:
+            if i[1] > maxCount:
+                maxCount = i[1]
+                winCard = i
+        return roundCards.index(winCard), calculateScore
+
+def finalWin(scores, roles):
+    """
+    input:  scores(list), roles(list)
+    output: declarerScore(int), defenderScore(int)
+    """
+    declarerScore = 0 #여당점수
+    defenderScore = 0 #야당점수
+    if len(scores) != len(roles):
+        print('error Input in finalWin')
+    for i in range(len(roles)):
+        if roles[i] == 0:
+            defenderScore += scores[i]
+    declarerScore = 20 - defenderScore # 처음에 무덤에 들어간 점카도 여당이 먹은거니까
+    return declarerScore, defenderScore

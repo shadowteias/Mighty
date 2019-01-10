@@ -47,13 +47,16 @@ class Environment(object):
 		                + [4bit]                        (start of each round, 시작사람이 1, 내가 시작이면 [0,0,0,0])
 		score           [4 ints]
 		"""
-        # self.rule = "defalt"
-        # self.playerNumber = 5
+        self.rule = "defalt"
+        self.playerNumber = 5
 
         self.role = [0,0,0,0,0]         # 밝혀진 것만, 처음에 Declarer, 게임중에 Friend
         self.scores = [0,0,0,0,0]       #턴 넘버에 매칭
         self.locations = [0,1,2,3,4]    #players[?]에 넣을 숫자.
         self.field = []   #필드에 나와있는 숫자
+
+        self.roundShape = 'all'
+        self.roundTrun = []
 
         self.giruda = ""
         self.bidding = 0
@@ -61,12 +64,15 @@ class Environment(object):
         self.mighty = ['S', 14]
         self.jokerCall = ['C',3]
 
+        self.roundCards = list(range(0,self.playerNumber))
+
         self.bits = list(range(0,478))                  # 비트화된 정보 for tf
         """
             bits    0~4     role
-                    5~9     giruda
+                    5~9     giruda      [c,d,h,s,nogiru]
                     10~14   scores
-                    15~19   locations
+                    15~19   locations # 이건 아닌가... 각자가 다른 입장일텐데 위치에 대해선.
+                    20~24   roundStart
                     ...
         """
 
@@ -76,11 +82,16 @@ class Environment(object):
 # 피하기 위한 정보: 누가 무슨 카드를 냈나. 그 때 상황이 (필드가) 어땠나.    
     
     def setGiruda(self,giruda):
+        self.giruda = giruda
         if giruda == 'S':
-            mighty = ['D', 14]
+            self.mighty = ['D', 14]
         elif giruda == 'C':
-
-        return mighty
+            self.jokerCall = ['H',3]
+        if giruda in shapes:
+            giruIndex = shapes.index(giruda)
+            bits[5+giruIndex] = 1 # 5~9: giruda
+        else:
+            bits[9] = 1
 
     def setDeclarer(self,kingNo):
         self.role[kingNo] = 1
@@ -88,3 +99,24 @@ class Environment(object):
     def setFriend(self,friendNo):
         self.role[friendNo] = 1
 
+    def initialize(self): #단순히 모든 변수 다 초기처럼 똑같이 맞추면 되겠군.
+        self.rule = "defalt"
+        self.playerNumber = 5
+
+        self.role = [0,0,0,0,0]         # 밝혀진 것만, 처음에 Declarer, 게임중에 Friend
+        self.scores = [0,0,0,0,0]       #턴 넘버에 매칭
+        self.locations = [0,1,2,3,4]    #players[?]에 넣을 숫자.
+        self.field = []   #필드에 나와있는 숫자
+
+        self.roundShape = 'all'
+        self.roundTrun = []
+
+        self.giruda = ""
+        self.bidding = 0
+
+        self.mighty = ['S', 14]
+        self.jokerCall = ['C',3]
+
+        self.roundCards = list(range(0,self.playerNumber))
+
+        self.bits = list(range(0,478))

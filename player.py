@@ -9,15 +9,6 @@ joker = ['joker', 0]
 # grave
 shapes = ['C', 'D', 'H', 'S']
 
-
-# 함수 사용하는거 목록
-
-# shapeCounter
-# dealCount
-# shapeCollector
-# dealCount
-# shapeCounter
-
 #게임 플레이 과정에서 정해진 기루다, 마이티 같은거 어케 자동으로 못 가져오나... 인풋으로 안넣고도.
 
 class Player(object):
@@ -64,6 +55,7 @@ class Player(object):
         self.field = []   #내 현재 점수카드
         self.score = 0    #내 현재 점수
         self.role = [0,0]     #00:야당, 01:프랜드, 10: 주공
+        self.grave = []
 #         self.             #의심도(?) 누가누가 프랜드같은지... 추론은 어케 해야 하냐
 # 피하고 싶은 상황: 눈앞에서 뻔히 프랜드같은놈이 주공한테 점수 퍼주는데 프랜드인지 모르고 걔한테 점수 주는 짓.
 #                  혹은 야당끼리 협력 못하고 모두 서로를 프랜드로 보고 자기 점수만 늘리려고 하는 전략.
@@ -262,13 +254,17 @@ class Player(object):
         else: return "noFriend"
         print("친구고르기")
     
-    def possibleOptions(self, turnShape, mighty):
-        if gf.shapeCounter(self.hand, turnShape) > 0:
-            options = gf.shapeCollector(options, turnShape)
+    def possibleOptions(self, turnShape, mighty): 
+        if turnShape == 'all':
+            count = 0
+        else:
+            count = gf.shapeCounter(self.hand, turnShape)
+        if count > 0:
+            options = gf.shapeCollector(self.hand, turnShape)
             if mighty in self.hand:
-                options += mighty
+                options.append(mighty)
             if joker in self.hand:
-                options += joker
+                options.append(joker)
         else:
             options = self.hand.copy()
         return options
@@ -278,20 +274,20 @@ class Player(object):
         return 'S'
 
 
-    def pickCard(self, bits):        #젤어렵겠다... AI 구현 with TF
+    def pickCard(self, bits, turnShape, mighty):        #젤어렵겠다... AI 구현 with TF
 #         print('카드 고르기')
 #     self.hand[random.randrange(0,len(self.hand))]
-        myPick = self.possibleOptions(turnShape, mighty)
-        myPick[random.randrange(0,len(myPick))]
+        myOptions = self.possibleOptions(turnShape, mighty)
+        myPick = myOptions[random.randrange(0,len(myOptions))]
         self.hand.remove(myPick)
         return myPick
 
-    def jokerCallPick(self):
+    def jokerCallPick(self, bits, turnShape, mighty):
         if joker in self.hand:
             self.hand.remove(joker)
             return joker
         else:
-            return self.pickCard(mighty)
+            return self.pickCard(bits, turnShape, mighty)
 # # 인풋은 뭐뭐여야 할까
 # # 내가 선일때, 선 아닐때를 구분해야 할까...
 #         if len(self.hand) > 0:
@@ -310,4 +306,6 @@ class Player(object):
     공약      bidding, bid
     선       lead
     야당      defender
+
+선을 뭐라고 부르지...roundShape?
 """
